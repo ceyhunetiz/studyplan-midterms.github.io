@@ -1,1 +1,0 @@
-# studyplan-midterms.github.io
