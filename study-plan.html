@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Exam Study Plan</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#0f1119;--surface:#181b27;--surface2:#1f2333;--border:#2a2e3f;
+    --text:#e4e6f0;--text-dim:#8b8fa4;
+    --mktg:#f7b731;--mktg-bg:rgba(247,183,49,.12);
+    --cs301:#fc5c65;--cs301-bg:rgba(252,92,101,.12);
+    --cs306:#45aaf2;--cs306-bg:rgba(69,170,242,.12);
+    --cs308:#26de81;--cs308-bg:rgba(38,222,129,.12);
+    --today:#a55eea;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:24px}
+  .header{text-align:center;margin-bottom:28px}
+  .header h1{font-family:'Space Mono',monospace;font-size:28px;letter-spacing:-1px;margin-bottom:6px;background:linear-gradient(135deg,#fc5c65,#45aaf2,#26de81,#f7b731);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+  .header p{color:var(--text-dim);font-size:14px}
+  .legend{display:flex;justify-content:center;gap:16px;flex-wrap:wrap;margin-bottom:24px}
+  .legend-item{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:600;padding:6px 12px;border-radius:20px;cursor:pointer;transition:all .2s;user-select:none}
+  .legend-item.active{opacity:1}.legend-item.inactive{opacity:.35}
+  .legend-dot{width:10px;height:10px;border-radius:50%}
+  .l-mktg{background:var(--mktg-bg);color:var(--mktg);border:1px solid rgba(247,183,49,.25)}.l-mktg .legend-dot{background:var(--mktg)}
+  .l-cs301{background:var(--cs301-bg);color:var(--cs301);border:1px solid rgba(252,92,101,.25)}.l-cs301 .legend-dot{background:var(--cs301)}
+  .l-cs306{background:var(--cs306-bg);color:var(--cs306);border:1px solid rgba(69,170,242,.25)}.l-cs306 .legend-dot{background:var(--cs306)}
+  .l-cs308{background:var(--cs308-bg);color:var(--cs308);border:1px solid rgba(38,222,129,.25)}.l-cs308 .legend-dot{background:var(--cs308)}
+  .calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;max-width:1100px;margin:0 auto}
+  .day-header{font-family:'Space Mono',monospace;font-size:11px;color:var(--text-dim);text-align:center;padding:8px 0;text-transform:uppercase;letter-spacing:1px}
+  .day-cell{background:var(--surface);border:1px solid var(--border);border-radius:8px;min-height:110px;padding:8px;transition:all .2s}
+  .day-cell:hover{border-color:#3a3f55;background:var(--surface2)}
+  .day-cell.today{border-color:var(--today);box-shadow:0 0 12px rgba(165,94,234,.2)}
+  .day-cell.exam-day{border-width:2px}
+  .day-num{font-family:'Space Mono',monospace;font-size:13px;font-weight:700;color:var(--text-dim);margin-bottom:5px}
+  .day-cell.today .day-num{color:var(--today)}
+  .task{font-size:11px;font-weight:500;padding:4px 7px;border-radius:5px;margin-bottom:3px;line-height:1.35;cursor:pointer;transition:all .2s;border-left:3px solid transparent}
+  .task:hover{transform:translateX(2px)}
+  .task.mktg{background:var(--mktg-bg);color:var(--mktg);border-left-color:var(--mktg)}
+  .task.cs301{background:var(--cs301-bg);color:var(--cs301);border-left-color:var(--cs301)}
+  .task.cs306{background:var(--cs306-bg);color:var(--cs306);border-left-color:var(--cs306)}
+  .task.cs308{background:var(--cs308-bg);color:var(--cs308);border-left-color:var(--cs308)}
+  .task.exam{font-weight:700;text-transform:uppercase;letter-spacing:.5px;animation:pulse 2s infinite}
+  .task.hidden{display:none}
+  .task.gap{border-left-style:dashed;opacity:.7}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.7}}
+  .tooltip{display:none;position:fixed;background:#252839;border:1px solid #3a3f55;border-radius:10px;padding:14px 16px;font-size:13px;line-height:1.55;max-width:380px;z-index:100;box-shadow:0 8px 30px rgba(0,0,0,.45);color:var(--text);pointer-events:none}
+  .tooltip.show{display:block}
+  .tooltip-title{font-weight:700;margin-bottom:4px;font-size:14px}
+  .tooltip-hours{font-family:'Space Mono',monospace;font-size:11px;color:var(--text-dim);margin-bottom:6px}
+  .tooltip-slide{font-size:11px;color:#45aaf2;margin-bottom:6px;font-style:italic}
+  .stats{max-width:1100px;margin:24px auto 0;display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+  .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;text-align:center}
+  .stat-label{font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+  .stat-value{font-family:'Space Mono',monospace;font-size:22px;font-weight:700}
+  .stat-sub{font-size:11px;color:var(--text-dim);margin-top:2px}
+  @media(max-width:700px){body{padding:12px}.day-cell{min-height:80px;padding:5px}.task{font-size:10px;padding:3px 5px}.stats{grid-template-columns:repeat(2,1fr)}.header h1{font-size:22px}}
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>// EXAM STUDY PLAN</h1>
+  <p>March 23 — April 16, 2026 · ~4–5 hrs/day · All 3 CS courses tailored to your slides</p>
+</div>
+<div class="legend" id="legend"></div>
+<div class="calendar" id="calendar"></div>
+<div class="stats" id="stats"></div>
+<div class="tooltip" id="tooltip">
+  <div class="tooltip-title" id="tt-title"></div>
+  <div class="tooltip-hours" id="tt-hours"></div>
+  <div class="tooltip-slide" id="tt-slide"></div>
+  <div id="tt-body"></div>
+</div>
+<script>
+const C={
+  mktg:{name:'MKTG413',full:'AI for Consumers',color:'#f7b731',cls:'mktg'},
+  cs301:{name:'CS301',full:'Algorithms',color:'#fc5c65',cls:'cs301'},
+  cs306:{name:'CS306',full:'Database Systems',color:'#45aaf2',cls:'cs306'},
+  cs308:{name:'CS308',full:'Software Engineering',color:'#26de81',cls:'cs308'},
+};
+
+const P={
+  '2026-03-23':[
+    {c:'mktg',label:'Review lecture notes',detail:'Go through all lecture slides on AI consumer applications, recommendation systems, and personalization.',hrs:2},
+    {c:'cs301',label:'Insertion Sort & asymptotic notation',detail:'Algorithm correctness, insertion sort (incremental approach), best/worst/average case. Asymptotic notation: O, Ω, Θ, o, ω definitions & properties. Complexity classes. Practice: prove bounds, compare growth rates.',hrs:2.5,slides:'Algorithms-01 — Slides 1–78'},
+  ],
+  '2026-03-24':[
+    {c:'mktg',label:'Summarize key concepts',detail:'Create a cheat sheet: AI ethics, consumer behavior models, NLP in marketing, chatbot design.',hrs:2},
+    {c:'cs301',label:'Recurrences & Merge Sort',detail:'Divide & conquer (3 steps). Merge Sort & Θ(n lg n). Solving recurrences: substitution (guess+induction), recursion tree, Master Theorem (3 cases). Practice: T(n)=2T(n/2)+n, T(n)=9T(n/3)+n.',hrs:2.5,slides:'Algorithms-02 — Slides 1–46'},
+  ],
+  '2026-03-25':[
+    {c:'mktg',label:'Practice quiz questions',detail:'Attempt past quizzes or textbook questions. Focus on application-based Qs.',hrs:1.5},
+    {c:'cs301',label:'QuickSort & sorting lower bound',detail:'QuickSort partition, worst O(n²), avg O(n lg n). Randomized QuickSort. Decision tree lower bound Ω(n lg n). Counting Sort O(n+k): stable implementation with first[] array. Practical limits when k is large.',hrs:3,slides:'Algorithms-02 — Slides 47–82'},
+  ],
+  '2026-03-26':[
+    {c:'mktg',label:'Case studies review',detail:'Review case studies: Netflix, Spotify recommendations, targeted ads, AI chatbots.',hrs:1.5},
+    {c:'cs301',label:'Radix Sort & selection',detail:'Stability (satellite data). Radix Sort: LSD + stable counting sort, d passes → O(d(n+k)). Selection: Randomized Select (expected O(n)). WCL_Select: groups of 5, median-of-medians pivot → T(n)=T(n/5)+T(7n/10)+O(n) → O(n).',hrs:3,slides:'Algorithms-03 — all slides'},
+  ],
+  '2026-03-27':[
+    {c:'mktg',label:'Mock quiz & weak spots',detail:'Timed self-test. Identify weak areas and re-study.',hrs:1.5},
+    {c:'cs301',label:'BST & Red-Black Trees',detail:'Dynamic sets ops. BST property, all ops. Worst case O(n) for skewed trees. RBT: 5 properties, h ≤ 2lg(n+1). Rotations. RBT_Insert fixup (3 cases + symmetric). O(lg n) guaranteed. AVL comparison.',hrs:3,slides:'Algorithms-04 — Slides 1–94'},
+  ],
+  '2026-03-28':[
+    {c:'mktg',label:'Final review & rest',detail:"Light review. Don't cram. Sleep well.",hrs:1},
+    {c:'cs301',label:'Augmenting data structures + DP intro',detail:'Order-statistics trees: OS_Rank, OS_Select in O(lg n). Interval trees: max endpoint, search algorithm. Then DP paradigm: optimal substructure + overlapping subproblems. Rod cutting: recursive → memoization → bottom-up.',hrs:3.5,slides:'Algorithms-05 — Slides 1–90'},
+  ],
+  '2026-03-29':[
+    {c:'mktg',label:'⚡ Quiz tomorrow',detail:'Quick 30-min skim. Relax and sleep early.',hrs:0.5},
+    {c:'cs301',label:'DP: Matrix Chain & LCS',detail:'Matrix chain: m[i,j] table, diagonal fill, O(n³). Memoization (LookUp). Reconstruct with s[i,j]. LCS: c[i,j] recurrence (match → +1, else max). O(nm) time, O(min(n,m)) space optimization. Backtrack for actual LCS.',hrs:3.5,slides:'Algorithms-05 (Slides 91–111) + Algorithms-06 (LCS)'},
+  ],
+  '2026-03-30':[
+    {c:'mktg',label:'📝 QUIZ DAY',detail:"MKTG413 Quiz. You've got this!",hrs:0,exam:true},
+    {c:'cs301',label:'Greedy: Huffman + Amortized analysis',detail:'Huffman coding: prefix-free tree, merge 2 lowest frequencies. Implementation with RBT → O(n lg n). Amortized analysis: (1) Aggregate method (total/n). (2) Accounting method (credit ≥ 0). (3) Potential method (Φ, amortized = actual + ΔΦ). MultiPOP stack: all ops O(1) amortized.',hrs:4.5,slides:'Algorithms-06 (Huffman) + Algorithms-07 (all)'},
+  ],
+  '2026-03-31':[
+    {c:'cs301',label:'Full practice exam',detail:'Timed: asymptotic proofs, recurrence (Master Thm), trace QuickSort, RBT insert fixup, fill DP table (LCS or matrix chain), Huffman tree, amortized cost with potential.',hrs:4.5},
+  ],
+  '2026-04-01':[
+    {c:'cs301',label:'Review mistakes + cheat sheet',detail:'Fix every mistake from practice. Build cheat sheet: all complexities, Master Thm cases, RBT fixup, LCS recurrence, Huffman greedy, Φ formula.',hrs:3},
+    {c:'cs306',label:'ER Model fundamentals',detail:'Entities, entity sets, attributes, domains, keys. Relationship sets: binary, ternary, unary (tutor/tutee, supervisor/subordinate). ER notation. Practice drawing ER diagrams (bank, movies examples).',hrs:1.5,slides:'ER_Model_Slides — Slides 1–24'},
+  ],
+  '2026-04-02':[
+    {c:'cs301',label:'Light review — rest before exam',detail:'Skim cheat sheet only. No new material. Rest well.',hrs:1},
+    {c:'cs306',label:'ER constraints & design choices',detail:'Key constraints (arrow), participation (total/partial). Weak entities, ISA (overlap/covering). Aggregation (Monitors/Sponsors). Entity vs attribute, binary vs ternary tradeoffs.',hrs:2.5,slides:'ER_Model_Slides — Slides 25–58'},
+    {c:'cs306',label:'ER → Relational mapping',detail:'Entity → CREATE TABLE. Relationship → FKs + composite PKs. Key constraint merging. Participation → NOT NULL. Weak entities. ISA: 3 approaches. Policies/Dependents example.',hrs:1.5,slides:'ER2Relational_Model — all'},
+  ],
+  '2026-04-03':[
+    {c:'cs301',label:'Final skim & early sleep',detail:'10-min glance at cheat sheet. Trust your preparation.',hrs:0.5},
+    {c:'cs306',label:'Relational Model + integrity',detail:'Relations, schema/instance, cardinality/degree. PKs, candidate keys, superkeys. Foreign keys: NO ACTION, CASCADE, SET NULL, SET DEFAULT. Views. ICs from real-world semantics.',hrs:2,slides:'Relational_Model — Slides 1–30'},
+    {c:'cs306',label:'Relational Algebra',detail:'Core: σ, π, ×, −, ∪. Additional: ∩, ⋈, ÷, ρ. EMPLOYEE/DEPT/WORKSIN: "managed by SSN 4321", "2+ depts", "exactly 1", "ALL depts" (÷), "max salary".',hrs:2,slides:'Relational_Algebra — all 61 slides'},
+  ],
+  '2026-04-04':[
+    {c:'cs301',label:'📝 MIDTERM DAY',detail:'CS301 Algorithms Midterm. Key: asymptotic proofs, recurrences, QuickSort, BST/RBT, DP (matrix chain, LCS), Huffman, amortized (aggregate, accounting, potential).',hrs:0,exam:true},
+    {c:'cs306',label:'Schema refinement & FDs',detail:'Anomalies (STU-CO). FDs: X→Y. Armstrong\'s Axioms. Attribute closure (X+) algorithm. Check implication, find candidate keys.',hrs:2,slides:'Schema_Refinement — all'},
+    {c:'cs306',label:'Normal Forms',detail:'1NF: no set-valued attrs. BCNF: X must be superkey. 3NF: allows if A in candidate key. Minimal cover algorithm. Dependency-preserving 3NF decomposition. R(ABCDEF) example.',hrs:1.5,slides:'Normal_Forms — all 95 slides'},
+  ],
+  '2026-04-05':[
+    {c:'cs306',label:'SQL: core queries',detail:'SELECT/FROM/WHERE, DISTINCT, aliases. Cross-product eval. LIKE (%, _). UNION/INTERSECT/EXCEPT. Nested: IN, EXISTS, NOT EXISTS, ANY, ALL. Correlated subqueries. Division via NOT EXISTS + EXCEPT. Sailors examples.',hrs:3,slides:'Sql_Slides — Slides 1–50'},
+    {c:'cs306',label:'SQL: advanced + triggers',detail:'Aggregates (COUNT, SUM, AVG, MIN, MAX). GROUP BY + HAVING. NULLs. INSERT/DELETE/UPDATE. JOINs (INNER, OUTER, NATURAL, self). User variables. Stored procedures. Triggers (BEFORE/AFTER, NEW/OLD).',hrs:2,slides:'Sql_Slides — Slides 50–118'},
+  ],
+  '2026-04-06':[
+    {c:'cs306',label:'CS306 mock exam',detail:'Timed: ER diagram, ER→relational, 3 RA expressions, 4 SQL queries (nested + agg), BCNF decomposition, minimal cover. Review all mistakes.',hrs:2.5},
+    {c:'cs306',label:'Fix weak spots',detail:'Re-do any weak areas from mock. Focus on division (RA and SQL NOT EXISTS pattern) and normalization.',hrs:1.5},
+    {c:'cs308',label:'SE foundations',detail:'Nature of software (intangible, easy to reproduce, deteriorates). Types: custom, generic, embedded, real-time. What is SE? Solving customers\' problems systematically. Software disasters (Mars Orbiter, AT&T, Soviet early warning).',hrs:1,slides:'Slides 1 — Software & SE'},
+  ],
+  '2026-04-07':[
+    {c:'cs306',label:'Final review & rest',detail:'Skim all topic summaries. Focus on ER, RA division, SQL nested queries, BCNF. Sleep early.',hrs:1.5},
+    {c:'cs308',label:'Process models & Scrum',detail:'Waterfall (stages, limitations). Phased-release, spiral (prototyping + risk), evolutionary. Plan-driven vs agile tradeoffs. Scrum: sprints, product backlog, sprint backlog, daily standup, sprint review/retrospective. Roles: Product Owner, Scrum Master, Dev Team. Artifacts: product backlog, sprint backlog, increment.',hrs:2.5,slides:'Slides 2 — Managing Process + Slides 3 — Scrum'},
+    {c:'cs308',label:'Problem tracking & unit testing',detail:'Problem lifecycle (report → reproduce → fix → close). Effective bug reports (reproducible, one-line summary, neutral). Statuses: unconfirmed → confirmed → assigned → resolved → closed. Unit testing with JUnit: @Test, @Before/@After, @BeforeClass/@AfterClass. assertEquals, assertTrue. Parameterized tests, test suites, categories.',hrs:1.5,slides:'Slides 4 — Tracking + Slides 4.5 — UnitTesting'},
+  ],
+  '2026-04-08':[
+    {c:'cs306',label:'📝 MIDTERM DAY',detail:'CS306 Midterm. Key: ER diagrams, ER→relational, RA (division!), SQL (nested, GROUP BY/HAVING), FDs/closure, BCNF/3NF.',hrs:0,exam:true},
+    {c:'cs308',label:'Requirements Engineering',detail:'Problem definition & scope. User vs system requirements. Functional vs non-functional (performance, reliability, portability, etc.) vs domain requirements. Requirements completeness & consistency. Use cases: actors, goals, pre/post-conditions, steps. Use case diagrams: generalizations, inclusions (<<include>>), extensions (<<extend>>). LIBSYS examples.',hrs:3,slides:'Slides 5 — RequirementsEngineering'},
+  ],
+  '2026-04-09':[
+    {c:'cs308',label:'Class diagrams (UML)',detail:'UML history (Rumbaugh+Booch+Jacobson → OMG standard). Classes: name, attributes, operations, access modifiers (+, -, #). Associations: multiplicity (1, 0..*, 1..*), roles, navigability. Aggregation (hollow diamond) vs composition (filled diamond). Generalization (inheritance arrow). Abstract classes, interfaces. Association classes. OOBank example: identify classes from nouns, draw full diagram.',hrs:4.5,slides:'Slides 6 — ModellingWithClasses'},
+  ],
+  '2026-04-10':[
+    {c:'cs308',label:'Interaction & behavior diagrams',detail:'Sequence diagrams: lifelines, activation boxes, messages (sync, async, return). Self-calls. Fragments: alt (if/else), loop, opt. Communication diagrams: numbered messages. State diagrams: states, transitions, events, guards, actions. Activity diagrams. CourseSection state machine example (Planned → Open → Closed/Canceled). Practice drawing from problem descriptions.',hrs:4.5,slides:'Slides 7 — ModelingInteractions'},
+  ],
+  '2026-04-11':[
+    {c:'cs308',label:'🔲 GAP: extra topics (if any)',detail:'Reserved for any additional slides you upload. If no new material, use this day to review class diagrams and sequence diagrams by drawing them from scratch for practice scenarios.',hrs:4.5,gap:true},
+  ],
+  '2026-04-12':[
+    {c:'cs308',label:'🔲 GAP: extra topics (if any)',detail:'Reserved for additional material. Otherwise: practice writing use cases end-to-end, draw state diagrams for real systems (vending machine, ATM, online order).',hrs:4,gap:true},
+  ],
+  '2026-04-13':[
+    {c:'cs308',label:'Practice: draw all diagram types',detail:'From a problem description, produce: (1) use case diagram with include/extend, (2) class diagram with associations + generalization, (3) sequence diagram with alt/loop fragments, (4) state diagram with guards. Time yourself.',hrs:4.5},
+  ],
+  '2026-04-14':[
+    {c:'cs308',label:'Past exams & tricky topics',detail:'Work through previous midterms. Focus on: identifying classes from text (noun analysis), drawing correct multiplicity, writing proper use case steps, sequence diagram message order.',hrs:4.5},
+  ],
+  '2026-04-15':[
+    {c:'cs308',label:'Final review & cheat sheet',detail:'Compile: process models comparison, Scrum roles/artifacts/ceremonies, UML notation (class, sequence, state, use case), JUnit annotations, requirements types. Light review. Sleep early.',hrs:3},
+  ],
+  '2026-04-16':[
+    {c:'cs308',label:'📝 MIDTERM DAY',detail:'CS308 SE Midterm. Key: process models, Scrum, requirements (functional/non-functional), use cases, class diagrams (associations, multiplicity, generalization), sequence diagrams, state diagrams, unit testing.',hrs:0,exam:true},
+  ],
+};
+
+let active=new Set(Object.keys(C));
+const legendEl=document.getElementById('legend');
+Object.entries(C).forEach(([k,v])=>{
+  const el=document.createElement('div');
+  el.className=`legend-item active l-${k}`;
+  el.innerHTML=`<span class="legend-dot"></span>${v.name} — ${v.full}`;
+  el.onclick=()=>{
+    if(active.has(k)){active.delete(k);el.classList.replace('active','inactive')}
+    else{active.add(k);el.classList.replace('inactive','active')}
+    document.querySelectorAll('.task').forEach(t=>t.classList.toggle('hidden',!active.has(t.dataset.course)));
+  };
+  legendEl.appendChild(el);
+});
+
+const calEl=document.getElementById('calendar');
+['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].forEach(d=>{const h=document.createElement('div');h.className='day-header';h.textContent=d;calEl.appendChild(h)});
+
+let cur=new Date(2026,2,23);const end=new Date(2026,3,19);
+while(cur<=end){
+  const ds=cur.toISOString().slice(0,10);
+  const cell=document.createElement('div');
+  const tasks=P[ds]||[];
+  const hasExam=tasks.some(t=>t.exam);
+  cell.className='day-cell'+(ds==='2026-03-23'?' today':'')+(hasExam?' exam-day':'');
+  const num=document.createElement('div');
+  num.className='day-num';
+  num.textContent=(cur.getDate()===1?'Apr ':'')+cur.getDate();
+  cell.appendChild(num);
+  tasks.forEach(task=>{
+    const t=document.createElement('div');
+    t.className=`task ${C[task.c].cls}`+(task.exam?' exam':'')+(task.gap?' gap':'');
+    t.dataset.course=task.c;
+    t.textContent=task.label;
+    t.addEventListener('mouseenter',e=>{
+      const tt=document.getElementById('tooltip');
+      document.getElementById('tt-title').textContent=`${task.exam?'🎯 ':''}${C[task.c].name}: ${task.label.replace(/📝 |⚡ /g,'')}`;
+      document.getElementById('tt-hours').textContent=task.exam?'EXAM DAY':`⏱ ${task.hrs} hours`;
+      const sl=document.getElementById('tt-slide');
+      if(task.slides){sl.textContent='📎 '+task.slides;sl.style.display='block'}else{sl.style.display='none'}
+      document.getElementById('tt-body').textContent=task.detail;
+      tt.style.left=Math.min(e.clientX+12,window.innerWidth-400)+'px';
+      tt.style.top=Math.min(e.clientY+16,window.innerHeight-240)+'px';
+      tt.classList.add('show');
+    });
+    t.addEventListener('mouseleave',()=>document.getElementById('tooltip').classList.remove('show'));
+    cell.appendChild(t);
+  });
+  calEl.appendChild(cell);
+  cur.setDate(cur.getDate()+1);
+}
+
+const statsEl=document.getElementById('stats');
+Object.entries(C).forEach(([k,v])=>{
+  let total=0;
+  Object.values(P).forEach(day=>day.forEach(t=>{if(t.c===k)total+=t.hrs}));
+  const card=document.createElement('div');
+  card.className='stat-card';
+  card.innerHTML=`<div class="stat-label">${v.name}</div><div class="stat-value" style="color:${v.color}">${total}h</div><div class="stat-sub">${v.full}</div>`;
+  statsEl.appendChild(card);
+});
+</script>
+</body>
+</html>
